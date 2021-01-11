@@ -30,7 +30,7 @@ func (RefreshToken) TableName() string {
 	tableName := "refresh_tokens"
 
 	if namespace.GetNamespace() != "" {
-		return namespace.GetNamespace() + "_" + tableName
+		return namespace.GetNamespace() + "." + tableName
 	}
 
 	return tableName

@@ -110,6 +110,29 @@ func (a *API) signupNewUser(ctx context.Context, conn *storage.Connection, param
 		user.EncryptedPassword = ""
 	}
 
+	claimer := make(map[string]interface{})
+
+	claimer[config.Claimer.Namespace] = map[string]interface{}{
+		"x-allowed-roles": config.Claimer.Rules,
+		"x-user-id":       user.ID,
+		"x-default-role":  config.JWT.DefaultGroupName,
+	}
+
+	if params.Data == nil {
+		user.UserMetaData = map[string]interface{}{
+			"meta": &claimer,
+		}
+	} else {
+		merged := []map[string]interface{}{
+			{
+				"meta": &claimer,
+			},
+			params.Data,
+		}
+
+		user.UserMetaData = MergeMaps(merged...)
+	}
+
 	err = conn.Transaction(func(tx *storage.Connection) error {
 		if terr := tx.Create(user); terr != nil {
 			return internalServerError("Database error saving new user").WithInternalError(terr)

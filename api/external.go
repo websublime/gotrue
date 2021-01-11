@@ -161,6 +161,21 @@ func (a *API) internalExternalProviderCallback(w http.ResponseWriter, r *http.Re
 				if terr != nil {
 					return terr
 				}
+
+				claimer := make(map[string]interface{})
+				meta := make(map[string]interface{})
+
+				claimer[config.Claimer.Namespace] = map[string]interface{}{
+					"x-allowed-roles": config.Claimer.Rules,
+					"x-user-id":       user.ID,
+					"x-default-role":  config.JWT.DefaultGroupName,
+				}
+
+				meta["meta"] = claimer
+
+				if uerr := user.UpdateUserMetaData(tx, meta); uerr != nil {
+					return uerr
+				}
 			}
 
 			if !user.IsConfirmed() {

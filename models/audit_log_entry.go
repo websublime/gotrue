@@ -59,7 +59,7 @@ func (AuditLogEntry) TableName() string {
 	tableName := "audit_log_entries"
 
 	if namespace.GetNamespace() != "" {
-		return namespace.GetNamespace() + "_" + tableName
+		return namespace.GetNamespace() + "." + tableName
 	}
 
 	return tableName

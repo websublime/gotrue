@@ -85,7 +85,7 @@ func (User) TableName() string {
 	tableName := "users"
 
 	if namespace.GetNamespace() != "" {
-		return namespace.GetNamespace() + "_" + tableName
+		return namespace.GetNamespace() + "." + tableName
 	}
 
 	return tableName

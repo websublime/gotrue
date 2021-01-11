@@ -29,7 +29,7 @@ func (Instance) TableName() string {
 	tableName := "instances"
 
 	if namespace.GetNamespace() != "" {
-		return namespace.GetNamespace() + "_" + tableName
+		return namespace.GetNamespace() + "." + tableName
 	}
 
 	return tableName

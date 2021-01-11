@@ -103,6 +103,11 @@ type MailerConfiguration struct {
 	URLPaths    EmailContentConfiguration `json:"url_paths"`
 }
 
+type ClaimerConfiguration struct {
+	Namespace string   `json:"claim_namespace"`
+	Rules     []string `json:"claim_rules" split_words:"true"`
+}
+
 // Configuration holds all the per-instance configuration.
 type Configuration struct {
 	SiteURL       string                `json:"site_url" split_words:"true" required:"true"`
@@ -116,6 +121,7 @@ type Configuration struct {
 		Key      string `json:"key"`
 		Duration int    `json:"duration"`
 	} `json:"cookies"`
+	Claimer ClaimerConfiguration `json:"claimer"`
 }
 
 func loadEnvironment(filename string) error {
@@ -219,6 +225,14 @@ func (config *Configuration) ApplyDefaults() {
 
 	if config.Cookie.Duration == 0 {
 		config.Cookie.Duration = 86400
+	}
+
+	if config.Claimer.Namespace == "" {
+		config.Claimer.Namespace = "claims"
+	}
+
+	if len(config.Claimer.Rules) < 1 {
+		config.Claimer.Rules = []string{"reader"}
 	}
 }
 
