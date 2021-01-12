@@ -113,9 +113,9 @@ func (a *API) signupNewUser(ctx context.Context, conn *storage.Connection, param
 	claimer := make(map[string]interface{})
 
 	claimer[config.Claimer.Namespace] = map[string]interface{}{
-		"x-allowed-roles": config.Claimer.Rules,
-		"x-user-id":       user.ID,
-		"x-default-role":  config.JWT.DefaultGroupName,
+		"allowed_roles": config.Claimer.Rules,
+		"user_id":       user.ID,
+		"default_role":  config.JWT.DefaultGroupName,
 	}
 
 	if params.Data == nil {
