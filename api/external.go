@@ -173,8 +173,12 @@ func (a *API) internalExternalProviderCallback(w http.ResponseWriter, r *http.Re
 
 				meta["meta"] = claimer
 
-				if uerr := user.UpdateUserMetaData(tx, meta); uerr != nil {
-					return uerr
+				if terr = user.UpdateUserMetaData(tx, meta); terr != nil {
+					return terr
+				}
+
+				if terr = a.identityNewUser(ctx, tx, user); terr != nil {
+					return terr
 				}
 			}
 
@@ -214,6 +218,11 @@ func (a *API) internalExternalProviderCallback(w http.ResponseWriter, r *http.Re
 		if terr != nil {
 			return oauthError("server_error", terr.Error())
 		}
+
+		if terr = a.identityUpdateToken(ctx, user, token); terr != nil {
+			return internalServerError("Database error updating user identity").WithInternalError(terr)
+		}
+
 		return nil
 	})
 	if err != nil {
