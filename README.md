@@ -496,6 +496,22 @@ GoTrue exposes the following endpoints:
   }
   ```
 
+* **GET /identity**
+
+  Get the identity object for the logged in user (requires authentication)
+
+  Returns:
+
+  ```json
+  {
+    "token": "TPk33LNFXRKew7D0rTqh5cUPyCMbPytD05QTL0V8q8VOXiiuP69-496Os1BDVH7DEhzXuj0C0P4eM6o5sMyyntMYeBTI-P1hj-guZWb6kibSfFX3odGGGJ252JP0ii...",
+    "id": "a2daeea9-0fc3-4eec-8fca-0f0cd41e55a2",
+    "secretKey": "xpdoure87jdfdv=+joidhsdc",
+    "accessKey": "jsdjhbhf8sd7twehg37shbfc",
+    "userId": "11111111-2222-3333-4444-5555555555555"
+  }
+  ```
+
 * **PUT /user**
 
   Update a user (Requires authentication). Apart from changing email/password, this

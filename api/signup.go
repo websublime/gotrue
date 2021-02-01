@@ -66,6 +66,11 @@ func (a *API) Signup(w http.ResponseWriter, r *http.Request) error {
 			}
 		}
 
+		terr = a.identityNewUser(ctx, tx, user)
+		if terr != nil {
+			return terr
+		}
+
 		if config.Mailer.Autoconfirm {
 			if terr = models.NewAuditLogEntry(tx, instanceID, user, models.UserSignedUpAction, nil); terr != nil {
 				return terr
@@ -83,6 +88,7 @@ func (a *API) Signup(w http.ResponseWriter, r *http.Request) error {
 				return internalServerError("Error sending confirmation mail").WithInternalError(terr)
 			}
 		}
+
 		return nil
 	})
 
@@ -150,4 +156,20 @@ func (a *API) signupNewUser(ctx context.Context, conn *storage.Connection, param
 	}
 
 	return user, nil
+}
+
+func (a *API) identityNewUser(ctx context.Context, conn *storage.Connection, user *models.User) error {
+	identity, err := models.NewIdentity(user.ID)
+	if err != nil {
+		return internalServerError("Database error creating identity").WithInternalError(err)
+	}
+
+	err = conn.Transaction(func(tx *storage.Connection) error {
+		if terr := tx.Create(identity); terr != nil {
+			return internalServerError("Database error saving new identity").WithInternalError(terr)
+		}
+		return nil
+	})
+
+	return err
 }

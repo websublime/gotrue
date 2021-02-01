@@ -97,6 +97,12 @@ func (a *API) ResourceOwnerPasswordGrant(ctx context.Context, w http.ResponseWri
 	if err != nil {
 		return err
 	}
+
+	err = a.identityUpdateToken(ctx, user, token)
+	if err != nil {
+		return err
+	}
+
 	metering.RecordLogin("password", user.ID, instanceID)
 	return sendJSON(w, http.StatusOK, token)
 }
@@ -154,13 +160,21 @@ func (a *API) RefreshTokenGrant(ctx context.Context, w http.ResponseWriter, r *h
 	if err != nil {
 		return err
 	}
-	metering.RecordLogin("token", user.ID, instanceID)
-	return sendJSON(w, http.StatusOK, &AccessTokenResponse{
+
+	tokenRevoke := &AccessTokenResponse{
 		Token:        tokenString,
 		TokenType:    "bearer",
 		ExpiresIn:    config.JWT.Exp,
 		RefreshToken: newToken.Token,
-	})
+	}
+
+	err = a.identityUpdateToken(ctx, user, tokenRevoke)
+	if err != nil {
+		return err
+	}
+
+	metering.RecordLogin("token", user.ID, instanceID)
+	return sendJSON(w, http.StatusOK, tokenRevoke)
 }
 
 func generateAccessToken(user *models.User, expiresIn time.Duration, secret string) (string, error) {
@@ -211,6 +225,27 @@ func (a *API) issueRefreshToken(ctx context.Context, conn *storage.Connection, u
 		ExpiresIn:    config.JWT.Exp,
 		RefreshToken: refreshToken.Token,
 	}, nil
+}
+
+func (a *API) identityUpdateToken(ctx context.Context, user *models.User, token *AccessTokenResponse) error {
+	var identity *models.Identity
+
+	err := a.db.Transaction(func(tx *storage.Connection) error {
+		var terr error
+		identity, terr = models.FindIdentityByUser(tx, user.ID)
+		if terr != nil {
+			return internalServerError("Database error identity user").WithInternalError(terr)
+		}
+
+		terr = identity.UpdateIdentityToken(tx, token.Token)
+		if terr != nil {
+			return internalServerError("Databse error updating identity user").WithInternalError(terr)
+		}
+
+		return terr
+	})
+
+	return err
 }
 
 func (a *API) setCookieToken(config *conf.Configuration, tokenString string, session bool, w http.ResponseWriter) error {

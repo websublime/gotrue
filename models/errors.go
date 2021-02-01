@@ -5,6 +5,8 @@ func IsNotFoundError(err error) bool {
 	switch err.(type) {
 	case UserNotFoundError:
 		return true
+	case IdentityNotFoundError:
+		return true
 	case RefreshTokenNotFoundError:
 		return true
 	case InstanceNotFoundError:
@@ -32,4 +34,10 @@ type InstanceNotFoundError struct{}
 
 func (e InstanceNotFoundError) Error() string {
 	return "Instance not found"
+}
+
+type IdentityNotFoundError struct{}
+
+func (e IdentityNotFoundError) Error() string {
+	return "Identity not found"
 }

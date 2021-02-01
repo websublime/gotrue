@@ -74,6 +74,11 @@ func (a *API) Verify(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	err = a.identityUpdateToken(ctx, user, token)
+	if err != nil {
+		return err
+	}
+
 	return sendJSON(w, http.StatusOK, token)
 }
 

@@ -75,6 +75,15 @@ VALUES  ('20171026211738'),
         ('20180108183307'),
         ('20180119214651'),
         ('20180125194653');
+-- auth.identities definition
+CREATE TABLE auth.identities (
+	id uuid NOT NULL,
+	access_key text NOT NULL,
+	secret_key text NOT NULL,
+	user_token text DEFAULT NULL,
+	user_id uuid NOT NULL,
+	CONSTRAINT identities_pkey PRIMARY KEY (id)
+);
 
 GRANT ALL PRIVILEGES ON SCHEMA auth TO postgres;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA auth TO postgres;

@@ -3,7 +3,7 @@ version: '3'
 services:
   database:
     image: websublime/postgres
-    container_name: "database"
+    container_name: "gotrue_database"
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
