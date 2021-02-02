@@ -2,7 +2,9 @@ package models
 
 import (
 	"database/sql"
+	"strings"
 
+	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/uuid"
 	"github.com/netlify/gotrue/crypto"
 	"github.com/netlify/gotrue/storage"
@@ -11,11 +13,11 @@ import (
 )
 
 type Identity struct {
-	ID        uuid.UUID      `json:"id" db:"id"`
-	UserId    uuid.UUID      `json:"userID" db:"user_id"`
-	AccessKey string         `json:"accessKey" db:"access_key"`
-	SecretKey string         `json:"secretKey" db:"secret_key"`
-	Token     sql.NullString `json:"token" db:"user_token"`
+	ID        uuid.UUID    `json:"id" db:"id"`
+	UserId    uuid.UUID    `json:"userID" db:"user_id"`
+	AccessKey string       `json:"accessKey" db:"access_key"`
+	SecretKey string       `json:"secretKey" db:"secret_key"`
+	Token     nulls.String `json:"token" db:"user_token"`
 }
 
 func NewIdentity(userId uuid.UUID) (*Identity, error) {
@@ -23,12 +25,17 @@ func NewIdentity(userId uuid.UUID) (*Identity, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Error generating unique id")
 	}
+	uid, err := uuid.NewV4()
+	if err != nil {
+		return nil, errors.Wrap(err, "Error generating unique id")
+	}
+	key := strings.Replace(uid.String(), "-", "", 4)
 
 	identity := &Identity{
 		ID:        id,
 		UserId:    userId,
 		AccessKey: crypto.SecureToken(),
-		SecretKey: crypto.SecureToken(),
+		SecretKey: key,
 	}
 
 	return identity, nil
@@ -45,10 +52,7 @@ func (Identity) TableName() string {
 }
 
 func (i *Identity) UpdateIdentityToken(tx *storage.Connection, token string) error {
-	i.Token = sql.NullString{
-		String: token,
-		Valid:  len(token) >= 1,
-	}
+	i.Token = nulls.NewString(token)
 
 	return tx.UpdateOnly(i, "user_token")
 }
@@ -60,7 +64,13 @@ func (i *Identity) UpdateIdentityAccessKey(tx *storage.Connection) error {
 }
 
 func (i *Identity) UpdateIdentitySecret(tx *storage.Connection) error {
-	i.SecretKey = crypto.SecureToken()
+	uid, err := uuid.NewV4()
+	if err != nil {
+		return errors.Wrap(err, "Error generating unique id")
+	}
+	key := strings.Replace(uid.String(), "-", "", 4)
+
+	i.SecretKey = key
 
 	return tx.UpdateOnly(i, "secret_key")
 }
