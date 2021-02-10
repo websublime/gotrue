@@ -7,6 +7,8 @@ func IsNotFoundError(err error) bool {
 		return true
 	case IdentityNotFoundError:
 		return true
+	case TemplateNotFoundError:
+		return true
 	case RefreshTokenNotFoundError:
 		return true
 	case InstanceNotFoundError:
@@ -40,4 +42,10 @@ type IdentityNotFoundError struct{}
 
 func (e IdentityNotFoundError) Error() string {
 	return "Identity not found"
+}
+
+type TemplateNotFoundError struct{}
+
+func (e TemplateNotFoundError) Error() string {
+	return "Template not found"
 }

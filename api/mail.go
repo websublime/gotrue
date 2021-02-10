@@ -16,10 +16,15 @@ func sendConfirmation(tx *storage.Connection, u *models.User, mailer mailer.Mail
 		return nil
 	}
 
+	template, terr := models.FindTemplate(tx, u.Aud, string(models.Confirmation))
+	if terr != nil {
+		template = &models.Template{}
+	}
+
 	oldToken := u.ConfirmationToken
 	u.ConfirmationToken = crypto.SecureToken()
 	now := time.Now()
-	if err := mailer.ConfirmationMail(u, referrerURL); err != nil {
+	if err := mailer.ConfirmationMail(u, template, referrerURL); err != nil {
 		u.ConfirmationToken = oldToken
 		return errors.Wrap(err, "Error sending confirmation email")
 	}
@@ -28,10 +33,15 @@ func sendConfirmation(tx *storage.Connection, u *models.User, mailer mailer.Mail
 }
 
 func sendInvite(tx *storage.Connection, u *models.User, mailer mailer.Mailer, referrerURL string) error {
+	template, terr := models.FindTemplate(tx, u.Aud, string(models.Invite))
+	if terr != nil {
+		template = &models.Template{}
+	}
+
 	oldToken := u.ConfirmationToken
 	u.ConfirmationToken = crypto.SecureToken()
 	now := time.Now()
-	if err := mailer.InviteMail(u, referrerURL); err != nil {
+	if err := mailer.InviteMail(u, template, referrerURL); err != nil {
 		u.ConfirmationToken = oldToken
 		return errors.Wrap(err, "Error sending invite email")
 	}
@@ -44,10 +54,15 @@ func (a *API) sendPasswordRecovery(tx *storage.Connection, u *models.User, maile
 		return nil
 	}
 
+	template, terr := models.FindTemplate(tx, u.Aud, string(models.Recovery))
+	if terr != nil {
+		template = &models.Template{}
+	}
+
 	oldToken := u.RecoveryToken
 	u.RecoveryToken = crypto.SecureToken()
 	now := time.Now()
-	if err := mailer.RecoveryMail(u, referrerURL); err != nil {
+	if err := mailer.RecoveryMail(u, template, referrerURL); err != nil {
 		u.RecoveryToken = oldToken
 		return errors.Wrap(err, "Error sending recovery email")
 	}
@@ -56,12 +71,17 @@ func (a *API) sendPasswordRecovery(tx *storage.Connection, u *models.User, maile
 }
 
 func (a *API) sendEmailChange(tx *storage.Connection, u *models.User, mailer mailer.Mailer, email string, referrerURL string) error {
+	template, terr := models.FindTemplate(tx, u.Aud, string(models.Email))
+	if terr != nil {
+		template = &models.Template{}
+	}
+
 	oldToken := u.EmailChangeToken
 	oldEmail := u.EmailChange
 	u.EmailChangeToken = crypto.SecureToken()
 	u.EmailChange = email
 	now := time.Now()
-	if err := mailer.EmailChangeMail(u, referrerURL); err != nil {
+	if err := mailer.EmailChangeMail(u, template, referrerURL); err != nil {
 		u.EmailChangeToken = oldToken
 		u.EmailChange = oldEmail
 		return err

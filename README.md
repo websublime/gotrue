@@ -512,6 +512,42 @@ GoTrue exposes the following endpoints:
   }
   ```
 
+* **Post /template**
+
+  Creates a template for a audience (requires authentication)
+
+  ```go
+  // Types of template
+  const (
+    Invite       TemplateType = "INVITE"
+    Confirmation TemplateType = "CONFIRMATION"
+    Recovery     TemplateType = "RECOVERY"
+    Email        TemplateType = "EMAIL"
+  )
+  ```
+
+  Body:
+
+  ```json
+  {
+    "type": "CONFIRMATION",
+    "subject": "Confirm your signup",
+    "url": "https://www.site.com/templates/confirmation.html"
+  }
+  ```
+
+  Returns:
+
+  ```json
+  {
+    "id": "...",
+    "aud": "your-audience.com",
+    "type": "CONFIRMATION",
+    "subject": "Confirm your signup",
+    "url": "https://www.site.com/templates/confirmation.html"
+  }
+  ```
+
 * **PUT /user**
 
   Update a user (Requires authentication). Apart from changing email/password, this

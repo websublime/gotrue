@@ -14,6 +14,12 @@ type TemplateMailer struct {
 	Mailer  *mailme.Mailer
 }
 
+type TemplateMailData struct {
+	TemplateURL string
+	CallbackUrl string
+	Subject     string
+}
+
 const defaultInviteMail = `<h2>You have been invited</h2>
 
 <p>You have been invited to create a user on {{ .SiteURL }}. Follow this link to accept the invite:</p>
@@ -40,9 +46,40 @@ func (m TemplateMailer) ValidateEmail(email string) error {
 	return checkmail.ValidateFormat(email)
 }
 
+func (m TemplateMailer) TemplateMail(template *models.Template, subjectDefault string, urlTplDefault string) *TemplateMailData {
+	if len(template.BaseURL) > 0 {
+		m.Mailer.BaseURL = template.BaseURL
+		m.Config.SiteURL = template.BaseURL
+	}
+
+	tpl := &TemplateMailData{}
+
+	if len(template.Url) > 0 {
+		tpl.CallbackUrl = template.Url
+	} else {
+		tpl.CallbackUrl = "/"
+	}
+
+	if len(template.Subject) > 0 {
+		tpl.Subject = template.Subject
+	} else {
+		tpl.Subject = subjectDefault
+	}
+
+	if len(template.UrlTemplate) > 0 {
+		tpl.TemplateURL = template.UrlTemplate
+	} else {
+		tpl.TemplateURL = urlTplDefault
+	}
+
+	return tpl
+}
+
 // InviteMail sends a invite mail to a new user
-func (m *TemplateMailer) InviteMail(user *models.User, referrerURL string) error {
-	url, err := getSiteURL(referrerURL, m.Config.SiteURL, m.Config.Mailer.URLPaths.Invite, "invite_token="+user.ConfirmationToken)
+func (m *TemplateMailer) InviteMail(user *models.User, template *models.Template, referrerURL string) error {
+	templateData := m.TemplateMail(template, m.Config.Mailer.Subjects.Invite, m.Config.Mailer.Templates.Invite)
+
+	url, err := getSiteURL(referrerURL, m.Config.SiteURL, templateData.CallbackUrl, "invite_token="+user.ConfirmationToken)
 	if err != nil {
 		return err
 	}
@@ -54,18 +91,21 @@ func (m *TemplateMailer) InviteMail(user *models.User, referrerURL string) error
 		"Data":            user.UserMetaData,
 	}
 
+	// TODO: test it
 	return m.Mailer.Mail(
 		user.Email,
-		string(withDefault(m.Config.Mailer.Subjects.Invite, "You have been invited")),
-		enforceRelativeURL(m.Config.Mailer.Templates.Invite),
+		string(withDefault(templateData.Subject, "You have been invited")),
+		enforceRelativeURL(templateData.TemplateURL),
 		defaultInviteMail,
 		data,
 	)
 }
 
 // ConfirmationMail sends a signup confirmation mail to a new user
-func (m *TemplateMailer) ConfirmationMail(user *models.User, referrerURL string) error {
-	url, err := getSiteURL(referrerURL, m.Config.SiteURL, m.Config.Mailer.URLPaths.Confirmation, "confirmation_token="+user.ConfirmationToken)
+func (m *TemplateMailer) ConfirmationMail(user *models.User, template *models.Template, referrerURL string) error {
+	templateData := m.TemplateMail(template, m.Config.Mailer.Subjects.Confirmation, m.Config.Mailer.Templates.Confirmation)
+
+	url, err := getSiteURL(referrerURL, m.Config.SiteURL, templateData.CallbackUrl, "confirmation_token="+user.ConfirmationToken)
 	if err != nil {
 		return err
 	}
@@ -79,16 +119,17 @@ func (m *TemplateMailer) ConfirmationMail(user *models.User, referrerURL string)
 
 	return m.Mailer.Mail(
 		user.Email,
-		string(withDefault(m.Config.Mailer.Subjects.Confirmation, "Confirm Your Signup")),
-		enforceRelativeURL(m.Config.Mailer.Templates.Confirmation),
+		string(withDefault(templateData.Subject, "Confirm Your Signup")),
+		enforceRelativeURL(templateData.TemplateURL),
 		defaultConfirmationMail,
 		data,
 	)
 }
 
 // EmailChangeMail sends an email change confirmation mail to a user
-func (m *TemplateMailer) EmailChangeMail(user *models.User, referrerURL string) error {
-	url, err := getSiteURL(referrerURL, m.Config.SiteURL, m.Config.Mailer.URLPaths.EmailChange, "email_change_token="+user.EmailChangeToken)
+func (m *TemplateMailer) EmailChangeMail(user *models.User, template *models.Template, referrerURL string) error {
+	templateData := m.TemplateMail(template, m.Config.Mailer.Subjects.EmailChange, m.Config.Mailer.Templates.EmailChange)
+	url, err := getSiteURL(referrerURL, m.Config.SiteURL, templateData.CallbackUrl, "email_change_token="+user.EmailChangeToken)
 	if err != nil {
 		return err
 	}
@@ -103,16 +144,17 @@ func (m *TemplateMailer) EmailChangeMail(user *models.User, referrerURL string) 
 
 	return m.Mailer.Mail(
 		user.EmailChange,
-		string(withDefault(m.Config.Mailer.Subjects.EmailChange, "Confirm Email Change")),
-		enforceRelativeURL(m.Config.Mailer.Templates.EmailChange),
+		string(withDefault(templateData.Subject, "Confirm Email Change")),
+		enforceRelativeURL(templateData.TemplateURL),
 		defaultEmailChangeMail,
 		data,
 	)
 }
 
 // RecoveryMail sends a password recovery mail
-func (m *TemplateMailer) RecoveryMail(user *models.User, referrerURL string) error {
-	url, err := getSiteURL(referrerURL, m.Config.SiteURL, m.Config.Mailer.URLPaths.Recovery, "recovery_token="+user.RecoveryToken)
+func (m *TemplateMailer) RecoveryMail(user *models.User, template *models.Template, referrerURL string) error {
+	templateData := m.TemplateMail(template, m.Config.Mailer.Subjects.Recovery, m.Config.Mailer.Templates.Recovery)
+	url, err := getSiteURL(referrerURL, m.Config.SiteURL, templateData.CallbackUrl, "recovery_token="+user.RecoveryToken)
 	if err != nil {
 		return err
 	}
@@ -126,8 +168,8 @@ func (m *TemplateMailer) RecoveryMail(user *models.User, referrerURL string) err
 
 	return m.Mailer.Mail(
 		user.Email,
-		string(withDefault(m.Config.Mailer.Subjects.Recovery, "Reset Your Password")),
-		enforceRelativeURL(m.Config.Mailer.Templates.Recovery),
+		string(withDefault(templateData.Subject, "Reset Your Password")),
+		enforceRelativeURL(templateData.TemplateURL),
 		defaultRecoveryMail,
 		data,
 	)

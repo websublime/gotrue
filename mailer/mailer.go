@@ -13,10 +13,10 @@ import (
 // Mailer defines the interface a mailer must implement.
 type Mailer interface {
 	Send(user *models.User, subject, body string, data map[string]interface{}) error
-	InviteMail(user *models.User, referrerURL string) error
-	ConfirmationMail(user *models.User, referrerURL string) error
-	RecoveryMail(user *models.User, referrerURL string) error
-	EmailChangeMail(user *models.User, referrerURL string) error
+	InviteMail(user *models.User, template *models.Template, referrerURL string) error
+	ConfirmationMail(user *models.User, template *models.Template, referrerURL string) error
+	RecoveryMail(user *models.User, template *models.Template, referrerURL string) error
+	EmailChangeMail(user *models.User, template *models.Template, referrerURL string) error
 	ValidateEmail(email string) error
 }
 
