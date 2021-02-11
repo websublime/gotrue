@@ -532,7 +532,9 @@ GoTrue exposes the following endpoints:
   {
     "type": "CONFIRMATION",
     "subject": "Confirm your signup",
-    "url": "https://www.site.com/templates/confirmation.html"
+    "url": "/auth/confirmation",
+    "baseUrl": "https://www.site.com",
+    "templateUrl": "https://www.site.com/templates/confirmation.html"
   }
   ```
 
@@ -544,7 +546,9 @@ GoTrue exposes the following endpoints:
     "aud": "your-audience.com",
     "type": "CONFIRMATION",
     "subject": "Confirm your signup",
-    "url": "https://www.site.com/templates/confirmation.html"
+    "url": "/auth/confirmation",
+    "baseUrl": "https://www.site.com",
+    "templateUrl": "https://www.site.com/templates/confirmation.html"
   }
   ```
 

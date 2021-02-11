@@ -9,9 +9,11 @@ import (
 )
 
 type TemplateParams struct {
-	Type    models.TemplateType `json:"type"`
-	Subject string              `json:"subject"`
-	Url     string              `json:"url"`
+	Type        models.TemplateType `json:"type"`
+	Subject     string              `json:"subject"`
+	Url         string              `json:"url"`
+	BaseURL     string              `json:"baseUrl"`
+	TemplateURL string              `json:"templateUrl"`
 }
 
 func (a *API) CreateTemplate(w http.ResponseWriter, r *http.Request) error {
@@ -47,7 +49,7 @@ func (a *API) CreateTemplate(w http.ResponseWriter, r *http.Request) error {
 		return badRequestError("Template type not found")
 	}
 
-	template, err := models.NewTemplate(aud, params.Type, params.Subject, params.Url)
+	template, err := models.NewTemplate(aud, params.Type, params.Subject, params.Url, params.BaseURL, params.TemplateURL)
 	if err != nil {
 		return internalServerError("Database error creating template").WithInternalError(err)
 	}

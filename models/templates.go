@@ -28,7 +28,7 @@ type Template struct {
 	UrlTemplate string       `json:"urlTemplate" db:"url_template"`
 }
 
-func NewTemplate(aud string, types TemplateType, subject string, url string) (*Template, error) {
+func NewTemplate(aud string, types TemplateType, subject string, url string, base string, urlTemplate string) (*Template, error) {
 	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, errors.Wrap(err, "Error generating unique id")
@@ -40,6 +40,8 @@ func NewTemplate(aud string, types TemplateType, subject string, url string) (*T
 		Type:    types,
 		Subject: subject,
 		Url:     url,
+    BaseURL: base,
+    UrlTemplate: ,
 	}
 
 	return template, nil
