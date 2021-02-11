@@ -35,13 +35,13 @@ func NewTemplate(aud string, types TemplateType, subject string, url string, bas
 	}
 
 	template := &Template{
-		ID:      id,
-		Aud:     aud,
-		Type:    types,
-		Subject: subject,
-		Url:     url,
-    BaseURL: base,
-    UrlTemplate: ,
+		ID:          id,
+		Aud:         aud,
+		Type:        types,
+		Subject:     subject,
+		Url:         url,
+		BaseURL:     base,
+		UrlTemplate: urlTemplate,
 	}
 
 	return template, nil
